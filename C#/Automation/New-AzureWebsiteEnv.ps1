@@ -1,9 +1,7 @@
 ﻿Param(
-    [Parameter(Mandatory = $true)]
-    [ValidatePattern("^[a-z0-9]*$")]
     [String]$Name,             
-    [String]$Location = "East US",            
-    [String]$SqlDatabaseUserName = "tachydb",  
+    [String]$Location,            
+    [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword
     )
 
