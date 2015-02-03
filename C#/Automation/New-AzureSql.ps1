@@ -150,9 +150,6 @@ Param
         [String] $AppDatabaseName = "appdb",
 
         [parameter(Mandatory=$False)]
-        [String] $MemberDatabaseName = "memberdb",
-
-        [parameter(Mandatory=$False)]
         [String] $UserName = "dbuser",
 
         # Required
@@ -256,28 +253,23 @@ Function Get-SQLAzureDatabaseConnectionString
 $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
 
+
+if (!Get-AzureSqlDatabaseServer)
+{
 Write-Verbose "[Start] creating SQL Azure database server in $Location location with username $UserName and password $Password"
 $databaseServer = New-AzureSqlDatabaseServer -AdministratorLogin $UserName -AdministratorLoginPassword $Password -Location $Location
 if (!$databaseServer) {throw "Did not create database server. Failure in New-AzureSqlDatabaseServer in New-AzureSql.ps1"}
 $databaseServerName = $databaseServer.ServerName
 Write-Verbose "[Finish] creating SQL Azure database server $databaseServerName in location $Location with username $UserName and password $Password"
-
-# Create firewall rules.
-If ($StartIPAddress -and $EndIPAddress)
-{
-    # Create a SQL Azure database server firewall rule for the IP address of the machine in which this script will run
-    # This will also whitelist all the Azure IP so that the website can access the database server
-    Write-Verbose "[Start] creating firewall rule $FirewallRuleName in database server $databaseServerName for IP addresses $StartIPAddress - $EndIPAddress"
-    $rule1 = New-AzureSqlDatabaseServerFirewallRule -ServerName $databaseServer.ServerName -RuleName $FirewallRuleName -StartIpAddress $StartIPAddress -EndIpAddress $EndIPAddress -Verbose
 }
 else
 {
-    # Use the Azure REST API to create a firewall rule for the local machine range.
-    $rule1 = New-FirewallRuleForWebsite -FirewallRuleName $FirewallRuleName -DatabaseServerName $databaseServerName
-    $StartIPAddress = $rule1.StartIpAddress; $EndIPAddress = $rule1.EndIpAddress    
+Write-Verbose "[Start] setting databases server variables since a server already exist on the account"
+$databaseServer = Get-AzureSqlDatabaseServer
+$databaseServerName = $databaseServer.ServerName
+Write-Verbose "[Finish] Finished setting database server variables"
 }
-if (!$rule1) {throw "Failed to create $FirewallRuleName. Failure in New-AzureSql.ps1"}
-Write-Verbose "[Finish] creating $FirewallRuleName firewall rule in database server $databaseServerName for IP addresses $StartIPAddress - $EndIPAddress"
+# Create firewall rules
 
 Write-Verbose "[Start] creating firewall rule AllowAllAzureIP in database server $databaseServerName for IP addresses 0.0.0.0 - 0.0.0.0"
 $rule2 = New-AzureSqlDatabaseServerFirewallRule -AllowAllAzureServices -ServerName $databaseServerName -RuleName "AllowAllAzureIP" -Verbose
@@ -293,30 +285,29 @@ $context = New-AzureSqlDatabaseServerContext -ServerName $databaseServerName -Cr
 if (!$context) {throw "Failed to create db server context for $databaseServerName. Failure in call to New-AzureSqlDatabaseServerContext in New-AzureSql.ps1"}
 
 # Use the database context to create app database
-Write-Verbose "[Start] creating database  $AppDatabaseName in database server $databaseServerName"
+Write-Verbose "[Start] creating database  $AppDatabaseName in database server $databaseServerName if it doesn't exist"
+$appdb = Get-AzureSqlDatabase -DatabaseName $AppDatabaseName -Context $context -Verbose
+
+if (!$appdb)
 $appdb = New-AzureSqlDatabase -DatabaseName $AppDatabaseName -Context $context -Verbose
 if (!$appdb) {throw "Failed to create $AppDatabaseName application database. Failure in New-AzureSqlDatabase in New-AzureSql.ps1"}
 Write-Verbose "[Finish] creating database $AppDatabaseName in database server $databaseServerName"
 
-# Use the database context to create member database
-Write-Verbose "[Start] creating database $MemberDatabaseName in database server $databaseServerName"
-$memberdb = New-AzureSqlDatabase -DatabaseName $MemberDatabaseName -Context $context -Verbose
-if (!$memberdb) {throw "Failed to create $MemberDatabaseName member database. Failure in New-AzureSqlDatabase in New-AzureSql.ps1"}
-Write-Verbose "[Finish] creating database $MemberDatabaseName in database server $databaseServerName"
+###########
+#We will need to determine how to handle databases:
+#1.  Load a copy of an existing database
+#2.  Create a new database from an existing architecture
+##########
 
 Write-Verbose "Creating database connection string for $appDatabaseName in database server $databaseServerName"
 $appDatabaseConnectionString = Get-SQLAzureDatabaseConnectionString -DatabaseServerName $databaseServerName -DatabaseName $AppDatabaseName -UserName $UserName -Password $Password
 if (!$appDatabaseConnectionString) {throw "Failed to create application database connection string for $AppDatabaseName. Failure in Get-SQLAzureDatabaseConnectionString function in New-AzureSql.ps1"}
 
-Write-Verbose "Creating database connection string for $memberDatabaseName in database server $databaseServerName"
-$memberDatabaseConnectionString = Get-SQLAzureDatabaseConnectionString -DatabaseServerName $databaseServerName -DatabaseName $MemberDatabaseName -UserName $UserName -Password $Password
-if (!$memberDatabaseConnectionString) {throw "Failed to create member database connection string for $MemberDatabaseName. Failure in Get-SQLAzureDatabaseConnectionString function in New-AzureSql.ps1"}
-
 Write-Verbose "Creating hash table to return..."
 Return @{ `
     Server = $databaseServerName; UserName = $UserName; Password = $Password; `
     AppDatabase = @{Name = $AppDatabaseName; ConnectionString = $appDatabaseConnectionString}; `
-    MemberDatabase = @{Name = $MemberDatabaseName; ConnectionString = $memberDatabaseConnectionString} `
+    
 }
 
 # End - Actual script -----------------------------------------------------------------------------------------------------------------------------

@@ -42,7 +42,6 @@
 Param(
     [Parameter(Mandatory = $true)]
     [String]$ProjectFile,
-    [Switch]$Launch
 )
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
@@ -89,11 +88,5 @@ $finishTime = Get-Date
 
 # Output the time consumed in seconds
 Write-Output "Total time used (seconds): ($finishTime - $startTime).TotalSeconds)"s
-
-# if -Launch, launch the browser to show the website
-If ($Launch)
-{
-    Show-AzureWebsite -Name $websiteName
-}
 
 # End - Actual script -------------------------------------------------------------------------------------------------------------------------------

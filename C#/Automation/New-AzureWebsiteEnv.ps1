@@ -120,11 +120,11 @@ Param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern("^[a-z0-9]*$")]
     [String]$Name,                             # required    needs to be alphanumeric    
-    [String]$Location = "West US",             # optional    default to "West US", needs to be a location which all the services created here are available
-    [String]$SqlDatabaseUserName = "dbuser",   # optional    default to "dbuser"
+    [String]$Location = "East US",             # optional    default to "West US", needs to be a location which all the services created here are available
+    [String]$SqlDatabaseUserName = "tachydb",   # optional    default to "dbuser"
     [String]$SqlDatabasePassword,              # optional    optional, but required by a helper script. Set the value here or the helper script prompts you.
-    [String]$StartIPAddress,                   # optional    start IP address of the range you want to whitelist in SQL Azure firewall will try to detect if not specified
-    [String]$EndIPAddress                      # optional    end IP address of the range you want to whitelist in SQL Azure firewall will try to detect if not specified
+    ##Remove After Testing[String]$StartIPAddress,                   # optional    start IP address of the range you want to whitelist in SQL Azure firewall will try to detect if not specified
+    ##Remove After Testing[String]$EndIPAddress                      # optional    end IP address of the range you want to whitelist in SQL Azure firewall will try to detect if not specified
     )
 
 # Begin - Helper functions --------------------------------------------------------------------------------------------------------------------------
@@ -319,7 +319,7 @@ function Get-MissingFiles
 
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
-
+try{
 # Set the output level to verbose and make the script stop on error
 $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
@@ -343,26 +343,31 @@ $scriptPath = Split-Path -parent $PSCommandPath
 # Define the names of website, storage account, SQL Azure database and SQL Azure database server firewall rule
 $Name = $Name.ToLower()
 $storageAccountName = $Name + "storage"
-$sqlAppDatabaseName = "appdb"
-$sqlMemberDatabaseName = "memberdb"
+$sqlAppDatabaseName = $Name + "db"
+
 $sqlDatabaseServerFirewallRuleName = $Name + "rule"
 
 Write-Verbose "Creating a Windows Azure website: $Name"
-# Create a new website
+# Create a new website if it doesn't exist
 #    The New-AzureWebsite cmdlet is exported by the Azure module.
+
+if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name -and $_.Location -$Location}))
+{
 $website = New-AzureWebsite -Name $Name -Location $Location -Verbose
 if (!$website) {throw "Error: Website was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureWebsite returned and try again."}
+}
 
 Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
-# Create a new storage account
+# Create a new storage account if it doesn't exist
 $storage = & "$scriptPath\New-AzureStorage.ps1" -Name $storageAccountName -Location $Location
 if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureStorage.ps1 script returned and try again."}
 
+
+
 Write-Verbose "Creating a Windows Azure database server and databases"
-# Create a SQL Azure database server, app and member databases
+# Create a SQL Azure database server, and database
 $sql = & "$scriptPath\New-AzureSql.ps1" `
     -AppDatabaseName $sqlAppDatabaseName `
-    -MemberDatabaseName $sqlMemberDatabaseName `
     -UserName $SqlDatabaseUserName `
     -Password $SqlDatabasePassword `
     -FirewallRuleName $sqlDatabaseServerFirewallRuleName `
@@ -372,17 +377,13 @@ $sql = & "$scriptPath\New-AzureSql.ps1" `
 if (!$sql) {throw "Error: The database server or databases were not created. Terminating the script unsuccessfully. Failures occurred in New-AzureSql.ps1."}
 
 Write-Verbose "[Start] Adding settings to website: $Name"
-# Configure app settings for storage account and New Relic
+# Configure app settings for storage account
 $appSettings = @{ `
     "StorageAccountName" = $storageAccountName; `
     "StorageAccountAccessKey" = $storage.AccessKey; `
-    "COR_ENABLE_PROFILING" = "1"; `
-    "COR_PROFILER" = "{71DA0A04-7777-4EC6-9643-7D28B46A8A41}"; `
-    "COR_PROFILER_PATH" = "C:\Home\site\wwwroot\newrelic\NewRelic.Profiler.dll"; `
-    "NEWRELIC_HOME" = "C:\Home\site\wwwroot\newrelic" `
 }
 
-# Configure connection strings for appdb and ASP.NET member db
+# Configure connection strings for appdb and
 $connectionStrings = ( `
     @{Name = $sqlAppDatabaseName; Type = "SQLAzure"; ConnectionString = $sql.AppDatabase.ConnectionString}, `
     @{Name = "DefaultConnection"; Type = "SQLAzure"; ConnectionString = $sql.MemberDatabase.ConnectionString}
@@ -395,7 +396,7 @@ Set-AzureWebsite -Name $Name -AppSettings $appSettings -ConnectionStrings $conne
 if ($error) {throw "Error: Call to Set-AzureWebsite with database connection strings failed."}
 
 
-# Restart the website to let New Relic hook kick in
+# Restart the website
 $error.clear()
 Restart-AzureWebsite -Name $Name
 if ($error) {throw "Error: Call to Restart-AzureWebsite to make the relic effective failed."}
@@ -430,6 +431,11 @@ else
     Write-Verbose "[Finish] generating $Name.pubxml file"
 }
 
+
+############
+#Creating Cloud Service if it doesn't exist
+############
+
 Write-Verbose "Script is complete."
 # Mark the finish time of the script execution
 $finishTime = Get-Date
@@ -438,3 +444,10 @@ $TotalTime = ($finishTime - $startTime).TotalSeconds
 Write-Output "Total time used (seconds): $TotalTime"
 
 # End - Actual script ------------------------------------------------------------------------------------------------------------------------------- -
+
+}
+
+catch {
+  "any other undefined errors"
+  $error[0]
+}
