@@ -5,7 +5,7 @@ Param(
     [String]$Name,                              
     [String]$Location = "East US",            
     [String]$SqlDatabaseUserName = "tachydb",  
-    [String]$SqlDatabasePassword,     
+    [String]$SqlDatabasePassword
     )
 
 # Begin - Helper functions --------------------------------------------------------------------------------------------------------------------------
