@@ -1,8 +1,7 @@
-﻿[CmdletBinding(PositionalBinding=$True)]
-Param(
+﻿Param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern("^[a-z0-9]*$")]
-    [String]$Name,                              
+    [String]$Name,             
     [String]$Location = "East US",            
     [String]$SqlDatabaseUserName = "tachydb",  
     [String]$SqlDatabasePassword
