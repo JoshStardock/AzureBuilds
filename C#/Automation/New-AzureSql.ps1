@@ -151,7 +151,7 @@ if (!$context) {throw "Failed to create db server context for $databaseServerNam
 # Use the database context to create app database
 Write-Verbose "[Start] creating database  $AppDatabaseName in database server $databaseServerName if it doesn't exist"
 $appdb = Get-AzureSqlDatabase -ConnectionContext $context -DatabaseName $AppDatabaseName  -Verbose -ErrorAction SilentlyContinue
-if(!(appdb))
+if(!($appdb))
 {
 $appdb = New-AzureSqlDatabase -ConnectionContext $context -DatabaseName $AppDatabaseName -Verbose
 if (!$appdb) {throw "Failed to create $AppDatabaseName application database. Failure in New-AzureSqlDatabase in New-AzureSql.ps1"}
