@@ -1,6 +1,7 @@
 ﻿Param(
     [String]$Name,             
-    [String]$Location,            
+    [String]$Location,
+#add in params for storage account and database name right now the setup is fine#	
     [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword
     )
@@ -106,12 +107,6 @@ $error.clear()
 Set-AzureWebsite -Name $Name -AppSettings $appSettings -ConnectionStrings $connectionStrings
 if ($error) {throw "Error: Call to Set-AzureWebsite with database connection strings failed."}
 
-
-# Restart the website
-$error.clear()
-Restart-AzureWebsite -Name $Name
-if ($error) {throw "Error: Call to Restart-AzureWebsite to make the relic effective failed."}
-
 Write-Verbose "[Finish] Adding settings to website: $Name"
 Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 
@@ -134,3 +129,5 @@ catch {
   "any other undefined errors"
   $error[0]
 }
+
+
