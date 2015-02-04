@@ -284,34 +284,6 @@ if ($error) {throw "Error: Call to Restart-AzureWebsite to make the relic effect
 Write-Verbose "[Finish] Adding settings to website: $Name"
 Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 
-# Write the environment info to an xml file so that the deploy script can consume
-Write-Verbose "[Begin] writing environment info to website-environment.xml"
-New-EnvironmentXml -EnvironmentName $Name -WebsiteName $Name -Storage $storage -Sql $sql
-
-if (!(Test-path $scriptPath\website-environment.xml))
-{
-    throw "The script did not generate a website-environment.xml file that is required to deploy the website. Try to rerun the New-EnvironmentXml function in the New-AzureWebisteEnv.ps1 script."
-}
-else 
-{
-    Write-Verbose "$scriptPath\website-environment.xml"
-    Write-Verbose "[Finish] writing environment info to website-environment.xml"
-}
-
-# Generate the .pubxml file which will be used by webdeploy later
-Write-Verbose "[Begin] generating $Name.pubxml file"
-New-PublishXml -Website $Name
-if (!(Test-path $scriptPath\$Name.pubxml))
-{
-    throw "The script did not generate a $Name.pubxml file that is required for deployment. Try to rerun the New-PublishXml function in the New-AzureWebisteEnv.ps1 script."
-}
-else 
-{
-    Write-Verbose "$scriptPath\$Name.pubxml"
-    Write-Verbose "[Finish] generating $Name.pubxml file"
-}
-
-
 ############
 #Creating Cloud Service if it doesn't exist
 ############
