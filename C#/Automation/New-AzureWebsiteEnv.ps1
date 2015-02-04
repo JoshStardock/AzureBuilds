@@ -213,6 +213,7 @@ if ($missingFiles) {$missingFiles; throw "Required files missing from WebSite su
 Write-Verbose "Verifying that Windows Azure credentials in the Windows PowerShell session have not expired."
 Get-AzureWebsite | Out-Null
 
+Write-Host "The value of `$Name is $Name"
 
 Write-Verbose "[Start] creating Windows Azure website environment: $Name"
 # Get the directory of the current script
@@ -231,6 +232,7 @@ Write-Verbose "Creating a Windows Azure website: $Name"
 
 if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name -and $_.Location -$Location}))
 {
+Write-Verbose "Website named:  $Name does not exist creating website"
 $website = New-AzureWebsite -Name $Name -Location $Location -Verbose
 if (!$website) {throw "Error: Website was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureWebsite returned and try again."}
 }
