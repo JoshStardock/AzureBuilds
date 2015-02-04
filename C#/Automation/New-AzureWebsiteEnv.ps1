@@ -143,11 +143,11 @@ Function New-PublishXml
     $s = Get-AzureSubscription -Current
     if (!$s) {throw "Cannot get Windows Azure subscription. Failure in Get-AzureSubscription in New-PublishXml in New-AzureWebsiteEnv.ps1"}
 
-    $thumbprint = $s.Certificate.Thumbprint
+    $thumbprint = $s.DefaultAccount
     if (!$thumbprint) {throw "Cannot get subscription cert thumbprint. Failure in Get-AzureSubscription in New-PublishXml in New-AzureWebsiteEnv.ps1"}
     
     # Get the certificate of the current subscription from your local cert store
-    $cert = Get-ChildItem Cert:\CurrentUser\My\$thumbprint
+    $cert = Get-ChildItem Cert:\LocalMachine\My\$thumbprint
     if (!$cert) {throw "Cannot find subscription cert in Cert: drive. Failure in New-PublishXml in New-AzureWebsiteEnv.ps1"}
 
     $website = Get-AzureWebsite -Name $WebsiteName
