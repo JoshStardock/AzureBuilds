@@ -130,7 +130,7 @@ Write-Verbose "[Finish] Finished setting database server variables"
 
 Write-Verbose "[Start] creating firewall rule AllowAllAzureIP in database server $databaseServerName for IP addresses 0.0.0.0 - 0.0.0.0"
 if (!(Get-AzureSqlDatabaseServerFirewallRule -ServerName $databaseServerName -RuleName "AllowAllAzureIP"))
-{}
+{
 $rule1 = New-AzureSqlDatabaseServerFirewallRule -AllowAllAzureServices -ServerName $databaseServerName -RuleName "AllowAllAzureIP" -Verbose
 if (!$rule1) {throw "Failed to create AllowAllAzureIP firewall rule. Failure in New-AzureSql.ps1"}
 Write-Verbose "[Finish] creating AllowAllAzureIP firewall rule in database server $databaseServerName for IP addresses 0.0.0.0 - 0.0.0.0"
