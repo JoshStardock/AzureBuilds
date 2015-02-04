@@ -230,7 +230,7 @@ Write-Verbose "Creating a Windows Azure website: $Name"
 # Create a new website if it doesn't exist
 #    The New-AzureWebsite cmdlet is exported by the Azure module.
 
-if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name -and $_.Location -eq $Location}))
+if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name}))
 {
 Write-Verbose "Website named:  $Name does not exist creating website"
 $website = New-AzureWebsite -Name $Name -Location $Location -Verbose
