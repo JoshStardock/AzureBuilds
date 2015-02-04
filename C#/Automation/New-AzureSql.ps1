@@ -111,7 +111,7 @@ $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
 
 
-if (!Get-AzureSqlDatabaseServer)
+if (!(Get-AzureSqlDatabaseServer))
 {
 Write-Verbose "[Start] creating SQL Azure database server in $Location location with username $UserName and password $Password"
 $databaseServer = New-AzureSqlDatabaseServer -AdministratorLogin $UserName -AdministratorLoginPassword $Password -Location $Location
