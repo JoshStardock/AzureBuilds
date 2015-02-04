@@ -110,7 +110,7 @@ Function Get-SQLAzureDatabaseConnectionString
 $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
 
-
+if (((Get-AzureSqlDatabaseServer).count) -gt 1){throw "There is more than one Azure SQL Database Servers in this subscription, this breaks the build process.  Please contact DevOps or Remove the additional Azure SQL Database Server"}
 if (!(Get-AzureSqlDatabaseServer))
 {
 Write-Verbose "[Start] creating SQL Azure database server in $Location location with username $UserName and password $Password"
