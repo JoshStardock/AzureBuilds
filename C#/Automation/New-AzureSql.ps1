@@ -144,12 +144,12 @@ if (!$context) {throw "Failed to create db server context for $databaseServerNam
 # Use the database context to create app database
 Write-Verbose "[Start] creating database  $AppDatabaseName in database server $databaseServerName if it doesn't exist"
 $appdb = Get-AzureSqlDatabase -DatabaseName $AppDatabaseName -Context $context -Verbose
-
-if (!$appdb)
+if(!appdb)
+{
 $appdb = New-AzureSqlDatabase -DatabaseName $AppDatabaseName -Context $context -Verbose
 if (!$appdb) {throw "Failed to create $AppDatabaseName application database. Failure in New-AzureSqlDatabase in New-AzureSql.ps1"}
 Write-Verbose "[Finish] creating database $AppDatabaseName in database server $databaseServerName"
-
+}
 ###########
 #We will need to determine how to handle databases:
 #1.  Load a copy of an existing database
