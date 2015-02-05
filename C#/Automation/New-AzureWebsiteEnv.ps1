@@ -4,6 +4,7 @@
 #add in params for storage account and database name right now the setup is fine#	
     [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword
+	[String]$SubscriptionName
     )
 
 # Begin - Helper functions -------------------------------------------------------------------------------------------------------------------------
@@ -13,7 +14,7 @@ function Get-MissingFiles
     $files = dir $Path | foreach {$_.Name}
     $required= 'New-AzureSql.ps1',
                'New-AzureStorage.ps1',
-               'New-AzureWebsiteEnv.ps1',
+               'New-AzureWebsiteEnv.ps1'
 
     foreach ($r in $required)
     {            
@@ -74,6 +75,8 @@ Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
 $storage = & "$scriptPath\New-AzureStorage.ps1" -Name $storageAccountName -Location $Location
 if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureStorage.ps1 script returned and try again."}
 
+#Ensuring the subscription uses the newly created storage account
+Set-AzureSubscription -SubscriptionName $subscriptionName -CurrentStorageAccountName $storageAccountName
 
 
 Write-Verbose "Creating a Windows Azure database server and databases"
@@ -113,6 +116,23 @@ Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 ############
 #Creating Cloud Service if it doesn't exist
 ############
+
+# Run MSBuild to publish the project
+
+
+& "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
+				/p:Configuration=Release 
+                /p:DebugType=None
+                /p:Platform=AnyCpu
+                /p:OutputPath=C:\WebsitesPublish
+                /p:TargetProfile=Cloud
+                /t:publish
+                /verbosity:quiet }
+
+
+
+
+
 
 Write-Verbose "Script is complete."
 # Mark the finish time of the script execution
