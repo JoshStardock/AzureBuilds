@@ -1,10 +1,13 @@
 ﻿Param(
     [String]$Name,             
     [String]$Location,
-#add in params for storage account and database name right now the setup is fine#	
+	[String]$sqlAppDatabaseName creating database with name for now
+	[String]$StorageAccountName add in params for storage account and database name right now the setup is fine#	
     [String]$SqlDatabaseUserName,  
-    [String]$SqlDatabasePassword
-	[String]$SubscriptionName
+    [String]$SqlDatabasePassword,
+	[String]$SubscriptionName,
+	[String]$AppInsightsKey,
+	[String]$EnvType
     )
 
 # Begin - Helper functions -------------------------------------------------------------------------------------------------------------------------
@@ -54,14 +57,20 @@ $scriptPath = Split-Path -parent $PSCommandPath
 
 # Define the names of website, storage account, SQL Azure database and SQL Azure database server firewall rule
 $Name = $Name.ToLower()
-$storageAccountName = $Name + "storage"
+if (!($sqlAppDatabaseName))
+{
 $sqlAppDatabaseName = $Name + "db"
+}
 
+if (!($StorageAccountName))
+{
+$storageAccountName = $Name + "storage"
+}
+$storageAccountName = $storageAccountName.ToLower()
 $sqlDatabaseServerFirewallRuleName = $Name + "rule"
 
 Write-Verbose "Creating a Windows Azure website: $Name"
 # Create a new website if it doesn't exist
-#    The New-AzureWebsite cmdlet is exported by the Azure module.
 
 if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name}))
 {
@@ -93,21 +102,35 @@ if (!$sql) {throw "Error: The database server or databases were not created. Ter
 
 Write-Verbose "[Start] Adding settings to website: $Name"
 # Configure app settings for storage account
+
+#if we don't pass in an Application Insights Key don't set it 
+if (!($AppInsightsKey))
+{
 $appSettings = @{ `
     "StorageAccountName" = $storageAccountName; `
     "StorageAccountAccessKey" = $storage.AccessKey; `
+	}
 }
-
+else{
+$appSettings = @{ `
+    "StorageAccountName" = $storageAccountName; `
+    "StorageAccountAccessKey" = $storage.AccessKey; `
+	"ApplicationInsights_InstrumentationKey" = $AppInsightsKey; `
+	}
+}
 # Configure connection strings for appdb and
 $connectionStrings = ( `
-    @{Name = $sqlAppDatabaseName; Type = "SQLAzure"; ConnectionString = $sql.AppDatabase.ConnectionString}, `
-    @{Name = "DefaultConnection"; Type = "SQLAzure"; ConnectionString = $sql.MemberDatabase.ConnectionString}
+    @{Name = $sqlAppDatabaseName; Type = "SQLAzure"; ConnectionString = $sql.AppDatabase.ConnectionString}
 )
 
 Write-Verbose "Adding connection strings and storage account name/key to the new $Name website."
 # Add the connection string and storage account name/key to the website
 $error.clear()
 Set-AzureWebsite -Name $Name -AppSettings $appSettings -ConnectionStrings $connectionStrings
+
+
+
+
 if ($error) {throw "Error: Call to Set-AzureWebsite with database connection strings failed."}
 
 Write-Verbose "[Finish] Adding settings to website: $Name"
@@ -119,7 +142,9 @@ Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 
 # Run MSBuild to publish the project
 
-
+$ProjectFile = Get-ChildItem "%teamcity.build.checkoutDir%"| Where-Object {$_.Name -eq MyFixIT.csproj"} | select FullName
+Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
+<#
 & "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
 				/p:Configuration=Release 
                 /p:DebugType=None
@@ -127,8 +152,15 @@ Write-Verbose "[Finish] creating Windows Azure environment: $Name"
                 /p:OutputPath=C:\WebsitesPublish
                 /p:TargetProfile=Cloud
                 /t:publish
-                /verbosity:quiet }
-
+                /verbosity:quiet 
+				
+& "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
+/p:Configuration=Release `
+/p:DeployOnBuild=True `
+/p:DeployTarget=Package `
+/p:OutputPath=C:\WebsitesPublish `
+/p:DeployIisAppPath=tachyon-api-$envType `
+#>
 
 
 
