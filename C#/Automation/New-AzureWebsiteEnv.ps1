@@ -1,8 +1,8 @@
 ﻿Param(
     [String]$Name,             
     [String]$Location,
-	[String]$sqlAppDatabaseName #creating database with name for now
-	[String]$StorageAccountName #add in params for storage account and database name right now the setup is fine#	
+	[String]$sqlAppDatabaseName, #creating database with name for now
+	[String]$StorageAccountName, #add in params for storage account and database name right now the setup is fine#	
     [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword,
 	[String]$SubscriptionName,
