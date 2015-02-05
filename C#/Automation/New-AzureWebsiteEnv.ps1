@@ -142,7 +142,7 @@ Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 
 # Run MSBuild to publish the project
 
-$ProjectFile = Get-ChildItem "%teamcity.build.checkoutDir%"| Where-Object {$_.Name -eq MyFixIT.csproj"} | select FullName
+$ProjectFile = Get-ChildItem "%teamcity.build.checkoutDir%"| Where-Object {$_.Name -eq "MyFixIT.csproj"} | select FullName
 Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
 <#
 & "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
