@@ -8,6 +8,7 @@
 	[String]$SubscriptionName,
 	[String]$AppInsightsKey,
 	[String]$CSProjPath,
+	[String]$WebOutputDir
 	[String]$EnvType
     )
 
@@ -159,14 +160,18 @@ Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
                 /p:TargetProfile=Cloud
                 /t:publish
                 /verbosity:quiet 
-				
+#>				
+
+Write-Verbose "Make Sure that the `$WebOutputDir exist, if not creating it.  It has a value of:  $WebOutputDir"
+if(!(Test-Path $WebOutputDir)){New-Item -ItemType directory -Path $WebOutputDir -Force}
+
 & "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
 /p:Configuration=Release `
 /p:DeployOnBuild=True `
 /p:DeployTarget=Package `
-/p:OutputPath=C:\WebsitesPublish `
+/p:OutputPath=$WebOutputDir `
 /p:DeployIisAppPath=tachyon-api-$envType `
-#>
+
 
 
 
