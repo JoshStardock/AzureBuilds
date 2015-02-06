@@ -148,7 +148,7 @@ Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 # Run MSBuild to publish the project
 Write-Verbose "The value of `$CSProjPath is:  $CSProjPath"
 
-$ProjectFile = (Get-ChildItem  -recurse $CSProjPath | Where-Object {$_.Name -eq "MyFixIT.csproj"}).FullName
+$ProjectFile = (Get-ChildItem  -recurse $CSProjPath | Where-Object {$_.Name -eq "Tachyon.Api.csproj"}).FullName
 Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
 <#
 & "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
