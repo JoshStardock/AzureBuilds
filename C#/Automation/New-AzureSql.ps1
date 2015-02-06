@@ -153,7 +153,10 @@ Write-Verbose "[Start] creating database  $AppDatabaseName in database server $d
 $appdb = Get-AzureSqlDatabase -ConnectionContext $context -DatabaseName $AppDatabaseName  -Verbose -ErrorAction SilentlyContinue
 if(!($appdb))
 {
-$appdb = New-AzureSqlDatabase -ConnectionContext $context -DatabaseName $AppDatabaseName -Verbose
+Write-Verbose "No Azure Sql database with the name:  $AppDatabaseName, creating a new database"
+if(!($DBEdition)){$DBEdition = "Web"}
+Write-Verbose "If a edition to use for the database is not passed it will default to Web"
+$appdb = New-AzureSqlDatabase -ConnectionContext $context -DatabaseName $AppDatabaseName -Edition $DBEdition -Verbose
 if (!$appdb) {throw "Failed to create $AppDatabaseName application database. Failure in New-AzureSqlDatabase in New-AzureSql.ps1"}
 Write-Verbose "[Finish] creating database $AppDatabaseName in database server $databaseServerName"
 }
