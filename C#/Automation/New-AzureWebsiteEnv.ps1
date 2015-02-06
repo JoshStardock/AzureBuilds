@@ -81,7 +81,7 @@ if (!$website) {throw "Error: Website was not created. Terminating the script un
 }
 else
 {
-$website = Get-AzureWebsite -Name $Name -Location $Location -Verbose
+$website = Get-AzureWebsite -Name $Name -Verbose
 }
 
 Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
