@@ -70,7 +70,7 @@ $storageAccountName = $Name + "storage"
 $storageAccountName = $storageAccountName.ToLower()
 $sqlDatabaseServerFirewallRuleName = $Name + "rule"
 
-Write-Verbose "Creating a Windows Azure website: $Name"
+Write-Verbose "Checking for a Windows Azure website: $Name, creating if does not exist"
 # Create a new website if it doesn't exist
 
 if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name}))
@@ -78,6 +78,10 @@ if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name}))
 Write-Verbose "Website named:  $Name does not exist creating website"
 $website = New-AzureWebsite -Name $Name -Location $Location -Verbose
 if (!$website) {throw "Error: Website was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureWebsite returned and try again."}
+}
+else
+{
+$website = Get-AzureWebsite -Name $Name -Location $Location -Verbose
 }
 
 Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
