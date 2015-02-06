@@ -9,6 +9,7 @@
 	[String]$AppInsightsKey,
 	[String]$CSProjPath,
 	[String]$WebOutputDir,
+	[String]$DBEdition,
 	[String]$EnvType
     )
 
@@ -71,6 +72,18 @@ $storageAccountName = $Name + "storage"
 $storageAccountName = $storageAccountName.ToLower()
 $sqlDatabaseServerFirewallRuleName = $Name + "rule"
 
+
+Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
+# Create a new storage account if it doesn't exist
+$storage = & "$scriptPath\New-AzureStorage.ps1" -Name $storageAccountName -Location $Location
+if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureStorage.ps1 script returned and try again."}
+
+#Ensuring the subscription uses the newly created storage account
+Set-AzureSubscription -SubscriptionName $subscriptionName -CurrentStorageAccountName $storageAccountName
+
+
+
+
 Write-Verbose "Checking for a Windows Azure website: $Name, creating if does not exist"
 # Create a new website if it doesn't exist
 
@@ -85,13 +98,7 @@ else
 $website = Get-AzureWebsite -Name $Name -Verbose
 }
 
-Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
-# Create a new storage account if it doesn't exist
-$storage = & "$scriptPath\New-AzureStorage.ps1" -Name $storageAccountName -Location $Location
-if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureStorage.ps1 script returned and try again."}
 
-#Ensuring the subscription uses the newly created storage account
-Set-AzureSubscription -SubscriptionName $subscriptionName -CurrentStorageAccountName $storageAccountName
 
 
 Write-Verbose "Creating a Windows Azure database server and databases"
@@ -162,7 +169,7 @@ Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
                 /verbosity:quiet 
 #>				
 
-Write-Verbose "Make Sure that the `$WebOutputDir exist, if not creating it.  It has a value of:  $WebOutputDir"
+Write-Verbose "Make Sure that the `$WebOutputDir exist, if it doesn't it will be created.  It has a value of:  $WebOutputDir"
 if(!(Test-Path $WebOutputDir)){New-Item -ItemType directory -Path $WebOutputDir -Force}
 
 & "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
