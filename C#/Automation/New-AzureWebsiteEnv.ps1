@@ -8,7 +8,7 @@
 	[String]$SubscriptionName,
 	[String]$AppInsightsKey,
 	[String]$CSProjPath,
-	[String]$WebOutputDir
+	[String]$WebOutputDir,
 	[String]$EnvType
     )
 
