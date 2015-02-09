@@ -1,8 +1,19 @@
-﻿Param(
+﻿<#$suffix:  "-test"
+$DBName = "joshmtachyon-core-test"
+$WorkerRoleName = "joshmtachyon-orleans-test"
+$WebSiteName = "joshmtachyon-api-test"
+$CloudServiceName = "joshmtachyon-services-test"
+$StorageAccountName = "joshmtachyonprod"
+$ServiceBusNamespace = "joshmtachyon-test"
+$ServiceBusQueueName = "joshmtachyon-statsqueue-test"
+#>
+
+
+Param(
     #The number of parameters is getting bloated#
     [String]$Name,             
     [String]$Location = "East US"
-	[String]$sqlAppDatabaseName, #creating database with name for now
+	[String]$sqlAppDatabaseName, 
 	[String]$StorageAccountName, #add in params for storage account and database name right now the setup is fine#	
     [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword,
@@ -33,7 +44,7 @@ function Get-MissingFiles
 }
 
 
-# End - Helper funtions -----------------------------------------------------------------------------------------------------------------------------
+# End - Helper functions -----------------------------------------------------------------------------------------------------------------------------
 
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
