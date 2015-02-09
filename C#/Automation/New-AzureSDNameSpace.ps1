@@ -2,10 +2,10 @@ Function New-SDNameSpace{
 [CmdletBinding(PositionalBinding=$True)]
 Param(
 	[Parameter(Mandatory = $true)]
-    [ValidatePattern("^[a-z0-9]*$")]
+    #[ValidatePattern("^[a-z0-9]*$")]
     [String]$Namespace,                                      # required    needs to be alphanumeric
     [Parameter(Mandatory = $true)]
-    [ValidatePattern("^[a-z0-9]*$")]
+    #[ValidatePattern("^[a-z0-9]*$")]
     [String]$Path,                                           # required    needs to be alphanumeric    
     [Int]$AutoDeleteOnIdle = -1,                             # optional    default to -1
     [Int]$DefaultMessageTimeToLive = -1,                     # optional    default to -1
