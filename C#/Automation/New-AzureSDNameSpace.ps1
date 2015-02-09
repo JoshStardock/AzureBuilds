@@ -1,6 +1,9 @@
 Function New-SDNameSpace{
 [CmdletBinding(PositionalBinding=$True)]
 Param(
+	[Parameter(Mandatory = $true)]
+    [ValidatePattern("^[a-z0-9]*$")]
+    [String]$Namespace,                                      # required    needs to be alphanumeric
     [Parameter(Mandatory = $true)]
     [ValidatePattern("^[a-z0-9]*$")]
     [String]$Path,                                           # required    needs to be alphanumeric    
@@ -21,11 +24,8 @@ Param(
     [Bool]$RequiresSession = $False,                         # optional    default to false
     [Bool]$SupportOrdering = $True,                          # optional    default to true
     [String]$UserMetadata = $Null,                           # optional    default to null
-    [Parameter(Mandatory = $true)]
-    [ValidatePattern("^[a-z0-9]*$")]
-    [String]$Namespace,                                      # required    needs to be alphanumeric
     [Bool]$CreateACSNamespace = $False,                      # optional    default to $false
-    [String]$Location = "West Europe"                        # optional    default to "West Europe"
+    [String]$Location = "East US"                        # optional    default to "West Europe"
     )
 	
 try
@@ -128,4 +128,4 @@ catch
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
 }
-
+}
