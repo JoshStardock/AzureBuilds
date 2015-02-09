@@ -1,6 +1,7 @@
 ﻿Param(
+    #The number of parameters is getting bloated#
     [String]$Name,             
-    [String]$Location,
+    [String]$Location = "East US"
 	[String]$sqlAppDatabaseName, #creating database with name for now
 	[String]$StorageAccountName, #add in params for storage account and database name right now the setup is fine#	
     [String]$SqlDatabaseUserName,  
