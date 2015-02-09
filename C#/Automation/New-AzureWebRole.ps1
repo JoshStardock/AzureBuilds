@@ -1,13 +1,15 @@
 Param(
-      [string]$service,
+      [string]$serviceName,
       [string]$containerName,
       [string]$config,
       [string]$package,
-      [string]$slot="Production")
+      [string]$slot="Production"
+	  [String]$Location
+	  )
  
  
 Function Upload-Package($package, $containerName){
-    $blob = "$service.package.$(get-date -f yyyy_MM_dd_hh_ss).cspkg"
+    $blob = "$serviceName.package.$(get-date -f yyyy_MM_dd_hh_ss).cspkg"
      
     $containerState = Get-AzureStorageContainer -Name $containerName -ea 0
     if ($containerState -eq $null)
@@ -21,16 +23,16 @@ Function Upload-Package($package, $containerName){
     $blobState.ICloudBlob.uri.AbsoluteUri
 }
  
-Function Create-Deployment($package_url, $service, $slot, $config){
-    $opstat = New-AzureDeployment -Slot $slot -Package $package_url -Configuration $config -ServiceName $service
+Function Create-Deployment($package_url, $serviceName, $slot, $config){
+    $opstat = New-AzureDeployment -Slot $slot -Package $package_url -Configuration $config -ServiceName $serviceName
 }
   
-Function Upgrade-Deployment($package_url, $service, $slot, $config){
-    $setdeployment = Set-AzureDeployment -Upgrade -Slot $slot -Package $package_url -Configuration $config -ServiceName $service -Force
+Function Upgrade-Deployment($package_url, $serviceName, $slot, $config){
+    $setdeployment = Set-AzureDeployment -Upgrade -Slot $slot -Package $package_url -Configuration $config -ServiceName $serviceName -Force
 }
  
-Function Check-Deployment($service, $slot){
-    $completeDeployment = Get-AzureDeployment -ServiceName $service -Slot $slot
+Function Check-Deployment($serviceName, $slot){
+    $completeDeployment = Get-AzureDeployment -ServiceName $serviceName -Slot $slot
     $completeDeployment.deploymentid
 }
  
@@ -41,22 +43,25 @@ try{
     $package_url = Upload-Package -package $package -containerName $containerName
     "Package uploaded to $package_url"
  
-    $deployment = Get-AzureDeployment -ServiceName $service -Slot $slot -ErrorAction silentlycontinue 
+    $ServiceExist = Get-AzureService -ServiceName $ServiceName -ErrorAction silentlycontinue
+	if (!($ServiceExist)){New-AzureService -ServiceName $ServiceName -Location $Location}
+	$deployment = Get-AzureDeployment -ServiceName $serviceName -Slot $slot -ErrorAction silentlycontinue 
  
  
     if ($deployment.Name -eq $null) {
         Write-Host "No deployment is detected. Creating a new deployment. "
-        Create-Deployment -package_url $package_url -service $service -slot $slot -config $config
+		
+        Create-Deployment -package_url $package_url -service $serviceName -slot $slot -config $config
         Write-Host "New Deployment created"
  
     } else {
-        Write-Host "Deployment exists in $service.  Upgrading deployment."
-        Upgrade-Deployment -package_url $package_url -service $service -slot $slot -config $config
+        Write-Host "Deployment exists in $serviceName.  Upgrading deployment."
+        Upgrade-Deployment -package_url $package_url -service $serviceName -slot $slot -config $config
         Write-Host "Upgraded Deployment"
     }
  
-    $deploymentid = Check-Deployment -service $service -slot $slot
-    Write-Host "Deployed to $service with deployment id $deploymentid"
+    $deploymentid = Check-Deployment -service $serviceName -slot $slot
+    Write-Host "Deployed to $serviceName with deployment id $deploymentid"
 }
 catch
 {
