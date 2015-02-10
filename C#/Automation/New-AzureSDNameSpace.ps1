@@ -36,9 +36,9 @@ $ErrorActionPreference = "Stop"
 
 
 # WARNING: Make sure to reference the latest version of the \Microsoft.ServiceBus.dll
-Write-Output "Adding the [Microsoft.ServiceBus.dll] assembly to the script..."
+Write-Output "Adding the Microsoft.ServiceBus.dll assembly to the script..."
 Add-Type -Path "C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Compute\Microsoft.ServiceBus.dll"
-Write-Output "The [Microsoft.ServiceBus.dll] assembly has been successfully added to the script."
+Write-Output "The Microsoft.ServiceBus.dll assembly has been successfully added to the script."
 
 # Mark the start time of the script execution
 $startTime = Get-Date
@@ -50,7 +50,7 @@ $CurrentNamespace = Get-AzureSBNamespace -Name $Namespace
 # Check if the namespace already exists or needs to be created
 if ($CurrentNamespace)
 {
-    Write-Output "The namespace [$Namespace] already exists in the [$($CurrentNamespace.Region)] region." 
+    Write-Output "The namespace $Namespace already exists in the $($CurrentNamespace.Region) region." 
 }
 else
 {

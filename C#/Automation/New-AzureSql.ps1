@@ -1,4 +1,4 @@
-﻿
+﻿Function New-SDAzureSQL {
 [CmdletBinding(PositionalBinding=$True)]
 
 Param
@@ -198,3 +198,4 @@ Return @{ `
 }
 
 # End - Actual script -----------------------------------------------------------------------------------------------------------------------------
+}
