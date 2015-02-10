@@ -22,8 +22,12 @@ Param
         [parameter(Mandatory=$False)]
         [String]$EndIPAddress,
         
+		[parameter(Mandatory=$False)]
+        [String]$DBConfig,
+		
         [parameter(Mandatory=$False)]
-        [String]$Location = "West US"     
+        [String]$Location = "West US"
+		
       )
 
 
@@ -109,6 +113,8 @@ Function Get-SQLAzureDatabaseConnectionString
 
 $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
+#Testing for the existence of a Azure SQL Server.  If there is more than 1 already in existence we are going to exit the script and throw 
+#an error.  If there is only 1 Azure SQL Server in the subscription we will use it, if there is not one we create it
 
 if (((Get-AzureSqlDatabaseServer).count) -gt 1){throw "There is more than one Azure SQL Database Servers in this subscription, this breaks the build process.  Please contact DevOps or Remove the additional Azure SQL Database Server"}
 if (!(Get-AzureSqlDatabaseServer))
@@ -127,7 +133,7 @@ $databaseServerName = $databaseServer.ServerName
 Write-Verbose "[Finish] Finished setting database server variables"
 }
 # Create firewall rules
-
+#
 Write-Verbose "[Start] creating firewall rule AllowAllAzureIP in database server $databaseServerName for IP addresses 0.0.0.0 - 0.0.0.0"
 if (!(Get-AzureSqlDatabaseServerFirewallRule -ServerName $databaseServerName -RuleName "AllowAllAzureIP"))
 {
@@ -140,11 +146,29 @@ else
 {
 Write-Host "Rule named AllowAllAzureIP already exist skipping creation"
 }
+<###########
+#Need to determine how to handle databases:
+3 scenarios
+1.  NewDB (want to backup before doing any changes, throw error if db with name already exist...may not need to backup in prodution since backups are baked in with the standard tier will discuss with Tim Thursday)
+2.  Copy Existing (may be able to pass in date, if db exist in subscription backup first)
+3.  Update existing (backup first)
+4.  NoChange
+We will use $DBConfig as a parameter and run a switch statement
+switch ($DBConfig)
+{
+Newdb {New-SDAzureDB}
+Copy {Copy-SDAzureDB}
+Update {Update-SDAzureDB}
+default {No change to the existing database}
+}
+##########>
+
 # Create a database context which includes the server name and credential
 # These are all local operations. No API call to Windows Azure
 $credential = New-PSCredentialFromPlainText -UserName $UserName -Password $Password
 if (!$credential) {throw "Failed to create secure credentials. Failure in New-PSCredentialFromPlainText function in New-AzureSql.ps1"}
 
+#This will need to run every time I cannot get an existing credential
 $context = New-AzureSqlDatabaseServerContext -ServerName $databaseServerName -Credential $credential
 if (!$context) {throw "Failed to create db server context for $databaseServerName. Failure in call to New-AzureSqlDatabaseServerContext in New-AzureSql.ps1"}
 
@@ -160,11 +184,7 @@ $appdb = New-AzureSqlDatabase -ConnectionContext $context -DatabaseName $AppData
 if (!$appdb) {throw "Failed to create $AppDatabaseName application database. Failure in New-AzureSqlDatabase in New-AzureSql.ps1"}
 Write-Verbose "[Finish] creating database $AppDatabaseName in database server $databaseServerName"
 }
-###########
-#We will need to determine how to handle databases:
-#1.  Load a copy of an existing database
-#2.  Create a new database from an existing architecture
-##########
+
 
 Write-Verbose "Creating database connection string for $appDatabaseName in database server $databaseServerName"
 $appDatabaseConnectionString = Get-SQLAzureDatabaseConnectionString -DatabaseServerName $databaseServerName -DatabaseName $AppDatabaseName -UserName $UserName -Password $Password

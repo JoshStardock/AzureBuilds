@@ -11,10 +11,10 @@ $ServiceBusQueueName = "joshmtachyon-statsqueue-test"
 
 Param(
     #The number of parameters is getting bloated#
-    [String]$Name,             
+    [String]$WebsitesName            
     [String]$Location = "East US"
 	[String]$sqlAppDatabaseName, 
-	[String]$StorageAccountName, #add in params for storage account and database name right now the setup is fine#	
+	[String]$StorageAccountName, 	
     [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword,
 	[String]$SubscriptionName,
@@ -22,7 +22,11 @@ Param(
 	[String]$CSProjPath,
 	[String]$WebOutputDir,
 	[String]$DBEdition,
+	[String]$ServiceBusNamespace = "joshmtachyon-test"
+	[String]$ServiceBusQueueName = "joshmtachyon-statsqueue-test"
+	[String]$CSProjName = "Tachyon.Api.csproj"
 	[String]$EnvType
+	[hashtable]$WorkerRoles
     )
 
 # Begin - Helper functions -------------------------------------------------------------------------------------------------------------------------
@@ -64,25 +68,25 @@ if ($missingFiles) {$missingFiles; throw "Required files missing from WebSite su
 Write-Verbose "Verifying that Windows Azure credentials in the Windows PowerShell session have not expired."
 Get-AzureWebsite | Out-Null
 
-Write-Host "The value of `$Name is $Name"
+Write-Host "The value of `$WebsiteName is $WebsiteName"
 
-Write-Verbose "[Start] creating Windows Azure website environment: $Name"
+Write-Verbose "[Start] creating Windows Azure website environment: $WebsiteName"
 # Get the directory of the current script
 $scriptPath = Split-Path -parent $PSCommandPath
 
 # Define the names of website, storage account, SQL Azure database and SQL Azure database server firewall rule
-$Name = $Name.ToLower()
+$WebsiteName = $WebsiteName.ToLower()
 if (!($sqlAppDatabaseName))
 {
-$sqlAppDatabaseName = $Name + "db"
+$sqlAppDatabaseName = $WebsiteName + "db"
 }
 
 if (!($StorageAccountName))
 {
-$storageAccountName = $Name + "storage"
+$storageAccountName = $WebsiteName + "storage"
 }
 $storageAccountName = $storageAccountName.ToLower()
-$sqlDatabaseServerFirewallRuleName = $Name + "rule"
+$sqlDatabaseServerFirewallRuleName = $WebsiteName + "rule"
 
 
 Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
@@ -96,18 +100,18 @@ Set-AzureSubscription -SubscriptionName $subscriptionName -CurrentStorageAccount
 
 
 
-Write-Verbose "Checking for a Windows Azure website: $Name, creating if does not exist"
+Write-Verbose "Checking for a Windows Azure website: $WebsiteName, creating if does not exist"
 # Create a new website if it doesn't exist
 
-if (!(Get-AzureWebsite |where-object{$_.Name -eq $Name}))
+if (!(Get-AzureWebsite |where-object{$_.Name -eq $WebsiteName}))
 {
-Write-Verbose "Website named:  $Name does not exist creating website"
-$website = New-AzureWebsite -Name $Name -Location $Location -Verbose
+Write-Verbose "Website named:  $WebsiteName does not exist creating website"
+$website = New-AzureWebsite -Name $WebsiteName -Location $Location -Verbose
 if (!$website) {throw "Error: Website was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureWebsite returned and try again."}
 }
 else
 {
-$website = Get-AzureWebsite -Name $Name -Verbose
+$website = Get-AzureWebsite -Name $WebsiteName -Verbose
 }
 
 
@@ -125,7 +129,7 @@ $sql = & "$scriptPath\New-AzureSql.ps1" `
     -Location $Location
 if (!$sql) {throw "Error: The database server or databases were not created. Terminating the script unsuccessfully. Failures occurred in New-AzureSql.ps1."}
 
-Write-Verbose "[Start] Adding settings to website: $Name"
+Write-Verbose "[Start] Adding settings to website: $WebsiteName"
 # Configure app settings for storage account
 
 #if we don't pass in an Application Insights Key don't set it 
@@ -148,18 +152,18 @@ $connectionStrings = ( `
     @{Name = $sqlAppDatabaseName; Type = "SQLAzure"; ConnectionString = $sql.AppDatabase.ConnectionString}
 )
 
-Write-Verbose "Adding connection strings and storage account name/key to the new $Name website."
+Write-Verbose "Adding connection strings and storage account name/key to the new $WebsiteName website."
 # Add the connection string and storage account name/key to the website
 $error.clear()
-Set-AzureWebsite -Name $Name -AppSettings $appSettings -ConnectionStrings $connectionStrings
+Set-AzureWebsite -Name $WebsiteName -AppSettings $appSettings -ConnectionStrings $connectionStrings
 
 
 
 
 if ($error) {throw "Error: Call to Set-AzureWebsite with database connection strings failed."}
 
-Write-Verbose "[Finish] Adding settings to website: $Name"
-Write-Verbose "[Finish] creating Windows Azure environment: $Name"
+Write-Verbose "[Finish] Adding settings to website: $WebsiteName"
+Write-Verbose "[Finish] creating Windows Azure environment: $WebsiteName"
 
 ############
 #Creating Cloud Service if it doesn't exist
@@ -168,21 +172,11 @@ Write-Verbose "[Finish] creating Windows Azure environment: $Name"
 # Run MSBuild to publish the project
 Write-Verbose "The value of `$CSProjPath is:  $CSProjPath"
 
-$ProjectFile = (Get-ChildItem  -recurse $CSProjPath | Where-Object {$_.Name -eq "Tachyon.Api.csproj"}).FullName
+$ProjectFile = (Get-ChildItem  -recurse $CSProjPath | Where-Object {$_.Name -eq $CSProjName}).FullName
 Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
-<#
-& "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
-				/p:Configuration=Release 
-                /p:DebugType=None
-                /p:Platform=AnyCpu
-                /p:OutputPath=C:\WebsitesPublish
-                /p:TargetProfile=Cloud
-                /t:publish
-                /verbosity:quiet 
-#>				
-
 Write-Verbose "Make Sure that the `$WebOutputDir exist, if it doesn't it will be created.  It has a value of:  $WebOutputDir"
 if(!(Test-Path $WebOutputDir)){New-Item -ItemType directory -Path $WebOutputDir -Force}
+
 
 & "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $ProjectFile `
 /p:Configuration=Release `
@@ -193,7 +187,16 @@ if(!(Test-Path $WebOutputDir)){New-Item -ItemType directory -Path $WebOutputDir 
 
 
 
+. .\New-AzureSDNameSpace.ps1
+New-SDNameSpace $ServiceBusNamespace $ServiceBusQueueName
 
+. .\NewAzureWebRole  `
+      -serviceName `
+      -containerName `
+      -config `
+      -package `
+      -slot="Production" `
+	  -Location
 
 
 Write-Verbose "Script is complete."

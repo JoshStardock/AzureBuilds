@@ -1,3 +1,6 @@
+#Package needs to be .cspkg file or .zip
+#config needs to be cscfg file
+
 Param(
       [string]$serviceName,
       [string]$containerName,
