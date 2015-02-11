@@ -139,7 +139,7 @@ Param(
       [string]$containerName,
       [string]$config,
       [string]$package,
-      [string]$slot="Production"
+      [string]$slot="Production",
 	  [String]$Location
 	  )
  
