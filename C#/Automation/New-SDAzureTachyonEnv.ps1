@@ -1,5 +1,4 @@
-﻿Param(
-    #The number of parameters is getting bloated#
+﻿    #The number of parameters is getting bloated#
     param(
     [String]$ApplicationName,           
     [String]$Location = "East US"
