@@ -1,4 +1,8 @@
-﻿[CmdletBinding(PositionalBinding=$True)]
+﻿
+Function New-SDAzureStorage
+{
+
+[CmdletBinding(PositionalBinding=$False)]
 Param(
     [Parameter(Mandatory = $true)]
     [String]$Name,    
@@ -40,4 +44,6 @@ else
 	# Generate the connection string of the storage account
 	$connectionString = "BlobEndpoint=http://$Name.blob.core.windows.net/;QueueEndpoint=http://$Name.queue.core.windows.net/;TableEndpoint=http://$Name.table.core.windows.net/;AccountName=$Name;AccountKey=$primaryKey"
 	Return @{AccountName = $Name; AccessKey = $primaryKey; ConnectionString = $connectionString}
+}
+
 }

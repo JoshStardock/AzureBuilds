@@ -1,4 +1,4 @@
-Function New-SDNameSpace{
+Function New-SDAzureSBNameSpace{
 [CmdletBinding(PositionalBinding=$True)]
 Param(
 	[Parameter(Mandatory = $true)]

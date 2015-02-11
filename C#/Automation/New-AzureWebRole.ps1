@@ -1,6 +1,6 @@
 #Package needs to be .cspkg file or .zip
 #config needs to be cscfg file
-
+Function New-SDAzureRole{
 Param(
       [string]$serviceName,
       [string]$containerName,
@@ -71,4 +71,5 @@ catch
 	write-host "Caught an exception:" -ForegroundColor Red
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+}
 }

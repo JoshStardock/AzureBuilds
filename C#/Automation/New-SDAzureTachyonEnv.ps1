@@ -1,31 +1,26 @@
-﻿<#$suffix:  "-test"
-$DBName = "joshmtachyon-core-test"
-$WorkerRoleName = "joshmtachyon-orleans-test"
-$ApplicationName = "joshmtachyon-api-test"
-$CloudServiceName = "joshmtachyon-services-test"
-$StorageAccountName = "joshmtachyonprod"
-$ServiceBusNamespace = "joshmtachyon-test"
-$ServiceBusQueueName = "joshmtachyon-statsqueue-test"
-#>
-Function New-SDAzureTachyonEnv
+﻿Function New-SDAzureTachyonEnv
 {
 
 Param(
     #The number of parameters is getting bloated#
+    param(
     [String]$ApplicationName,           
     [String]$Location = "East US"
-	[String]$sqlAppDatabaseName, 
-	[String]$StorageAccountName, 	
-    [String]$SqlDatabaseUserName,  
-    [String]$SqlDatabasePassword,
+	[String]$StorageAccountName,
+	[String]$ApplicationType
 	[String]$SubscriptionName,
-	[String]$AppInsightsKey,
-	[String]$CSProjPath, #From Team City
-	[String]$WebOutputDir,
+	[String]$sqlAppDatabaseName, 
+	[String]$SqlDatabaseUserName,  
+    [String]$SqlDatabasePassword,
+	[String]$DBConfig,
 	[String]$DBEdition,
+	[String]$AppInsightsKey,
+	[String]$CSProjPath,
+	[String]$WebOutputDir,
 	[String]$ServiceBusNamespace,
 	[String]$ServiceBusQueueName,
-	[String]$CSProjName	
+	[String]$CSProjName,
+
     )
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
@@ -57,35 +52,17 @@ Write-Verbose "Creating a Windows Azure storage account: $storageAccountName"
 # Create a new storage account if it doesn't exist
 #Moving to function calls to avoid scoping issues
 #$storage = New-SDAzureStorage -Name $StorageAccountName -Location $Location
-$storage = & "$scriptPath\New-AzureStorage.ps1" -Name $StorageAccountName -Location $Location
-if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureStorage.ps1 script returned and try again."}
+if (!($StorageAccountName)){throw "You must pass in a storage account name"}
+$storage = New-SDAzureStorage -Name $StorageAccountName -Location $Location
+if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-SDAzureStorage function returned and try again."}
 
 #Ensuring the subscription uses the newly created storage account
 Set-AzureSubscription -SubscriptionName $subscriptionName -CurrentStorageAccountName $storageAccountName
 
-
-
-
-Write-Verbose "Checking for a Windows Azure website: $ApplicationName, creating if does not exist"
-#If the Application Type is a website, then create a new website if it doesn't exist
-
-if (!(Get-AzureWebsite |where-object{$_.Name -eq $ApplicationName}))
-{
-Write-Verbose "Website named:  $ApplicationName does not exist creating website"
-$website = New-AzureWebsite -Name $ApplicationName -Location $Location -Verbose
-if (!$website) {throw "Error: Website was not created. Terminating the script unsuccessfully. Fix the errors that New-AzureWebsite returned and try again."}
-}
-else
-{
-$website = Get-AzureWebsite -Name $ApplicationName -Verbose
-}
-
-
-
-
-Write-Verbose "Creating a Windows Azure database server and databases"
+Write-Verbose "Creating a Windows Azure database server and databases if a database name variable is passed in"
 # Create a SQL Azure database server, and database
-$sql = & "$scriptPath\New-AzureSql.ps1" `
+if ($sqlAppDatabaseName){
+$sql = New-SDAzureSQL `
     -AppDatabaseName $sqlAppDatabaseName `
     -UserName $SqlDatabaseUserName `
     -Password $SqlDatabasePassword `
@@ -95,50 +72,26 @@ $sql = & "$scriptPath\New-AzureSql.ps1" `
     -Location $Location
 if (!$sql) {throw "Error: The database server or databases were not created. Terminating the script unsuccessfully. Failures occurred in New-AzureSql.ps1."}
 
-Write-Verbose "[Start] Adding settings to website: $ApplicationName"
-# Configure app settings for storage account
-
-#if we don't pass in an Application Insights Key don't set it 
-if (!($AppInsightsKey))
-{
-$appSettings = @{ `
-    "StorageAccountName" = $storageAccountName; `
-    "StorageAccountAccessKey" = $storage.AccessKey; `
-	}
-}
-else{
-$appSettings = @{ `
-    "StorageAccountName" = $storageAccountName; `
-    "StorageAccountAccessKey" = $storage.AccessKey; `
-	"ApplicationInsights_InstrumentationKey" = $AppInsightsKey; `
-	}
-}
-# Configure connection strings for appdb and
 $connectionStrings = ( `
     @{Name = $sqlAppDatabaseName; Type = "SQLAzure"; ConnectionString = $sql.AppDatabase.ConnectionString}
 )
+}
 
-Write-Verbose "Adding connection strings and storage account name/key to the new $ApplicationName website."
-# Add the connection string and storage account name/key to the website
-$error.clear()
-Set-AzureWebsite -Name $ApplicationName -AppSettings $appSettings -ConnectionStrings $connectionStrings
+else
+{ 
+Write-Host "No SQL App Database Name was passed in, skipping the creation"
+}
+#Setup Connection Strings for Newly created database
+# Configure connection strings for website to database
 
 
 
-
-if ($error) {throw "Error: Call to Set-AzureWebsite with database connection strings failed."}
-
-Write-Verbose "[Finish] Adding settings to website: $ApplicationName"
-Write-Verbose "[Finish] creating Windows Azure environment: $ApplicationName"
-
-############
-#Creating Cloud Service if it doesn't exist
-############
-
-# Run MSBuild to publish the project
+#Team City will pull down a repo from Git and put the entire contentes into a "working directory"  
+#CSProjPath is passed in from Team City and is really the root directory 
+I
 Write-Verbose "The value of `$CSProjPath is:  $CSProjPath"
 
-$ProjectFile = (Get-ChildItem  -recurse $CSProjPath | Where-Object {$_.Name -eq $CSProjName}).FullName
+$ProjectFile = (Get-ChildItem -recurse $CSProjPath | Where-Object {$_.Name -eq $CSProjName}).FullName
 Write-Verbose "The value of `$ProjectFile is:  $ProjectFile"
 Write-Verbose "Make Sure that the `$WebOutputDir exist, if it doesn't it will be created.  It has a value of:  $WebOutputDir"
 if(!(Test-Path $WebOutputDir)){New-Item -ItemType directory -Path $WebOutputDir -Force}
@@ -153,16 +106,30 @@ if (!(Test-Path $WebOutputDir\$ApplicationName)){New-Item -ItemType directory -P
 
 
 
-. .\New-AzureSDNameSpace.ps1
-New-SDNameSpace $ServiceBusNamespace $ServiceBusQueueName
+#Creating Service Bus Name Space and Queue if it was passed in, other wise skip creation
 
-. .\NewAzureWebRole  `
-      -serviceName `
-      -containerName `
-      -config `
-      -package `
-      -slot="Production" `
-	  -Location
+if (($ServiceBusNamespace) -and ($ServiceBusQueueName))
+{
+New-SDAzureSBNameSpace $ServiceBusNamespace $ServiceBusQueueName
+}
+else 
+{
+Write-Verbose "Values for `$ServiceBusNamespace and `$ServiceBusQueueName were not passed in, skipping creation"
+}
+#  Going to be produced by MSBuild $CSPkgName,
+#  Going to be produced by MSBuild $CSCnfgName
+
+switch ($ApplicationType)
+	{
+	Website {New-SDAzureWebsite -ApplicationName $ApplicationName -Location $Location -StorageAccountName $StorageAccountName `
+	-connectionStrings $connectionStrings -AppInsightsKey $AppInsightsKey}
+	WebRole {New-SDAzureRole -ServiceName $ApplicationName -containerName $ApplicationName -config $CSCnfgName -package $CSPkgName `
+	-slot "Production" -Location $Location}
+	WorkerRole {New-SDAzureRole -ServiceName $ApplicationName -containerName $ApplicationName -config $CSCnfgName -package $CSPkgName `
+	-slot "Production" -Location $Location}
+	default {"No Application Type passed in, not running the creation scripts"}
+	}
+
 
 
 Write-Verbose "Script is complete."
