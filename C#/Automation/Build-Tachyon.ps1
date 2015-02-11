@@ -55,5 +55,5 @@ Write-Host "The current app being built is:  $CurrentAppBuild"
 
 catch {
   "any other undefined errors"
-  $error[0]
+  Write-Verbose "$error[0]"
 }
