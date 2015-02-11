@@ -13,9 +13,8 @@ Write-Host "This section updates each hash table with the appropriate password f
 Write-Host "The applications list is predefined"
 #This can be handled more dynamicaly if we do not care that all applications share a password.
 Write-Host "The value of `$applications is:  "$applications
-$applications[0]
-$applications[1]
-$applications[2]
+
+
 foreach ($app in $applications)
 {
 $findpass = $app.GetEnumerator()|Where-Object{$_.key -eq "ApplicationName"}
@@ -50,7 +49,7 @@ foreach ($app in $applications)
 $CurrentAppBuild = $app.GetEnumerator()|Where-Object{$_.key -eq "ApplicationName"}
 $CurrentAppBuild = $CurrentAppBuild.value
 Write-Host "The current app being built is:  $CurrentAppBuild"
-New-SDAzureTachyonEnv @app
+. .\New-SDAzureTachyonEnv.ps1 @app
 }
 }
 

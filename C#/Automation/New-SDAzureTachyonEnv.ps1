@@ -21,6 +21,7 @@
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
 try{
+Import-Module "C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Azure.psd1"
 # Set the output level to verbose and make the script stop on error
 $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
