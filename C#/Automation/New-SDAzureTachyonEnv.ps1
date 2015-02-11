@@ -99,7 +99,7 @@ Write-Host "No SQL App Database Name was passed in, skipping the creation"
 
 #Team City will pull down a repo from Git and put the entire contentes into a "working directory"  
 #CSProjPath is passed in from Team City and is really the root directory 
-I
+
 Write-Verbose "The value of `$CSProjPath is:  $CSProjPath"
 
 $ProjectFile = (Get-ChildItem -recurse $CSProjPath | Where-Object {$_.Name -eq $CSProjName}).FullName

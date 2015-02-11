@@ -27,12 +27,12 @@ Write-Host "DBPassword has been added from TeamCity"
 }
 elseif($findpass -like "*api*")
 {
-$app.set_item("sqlDatabasePassword","$apipass")
+$app.set_item("sqlDatabasePassword","$orleanspass")
 Write-Host "DBPassword has been added from TeamCity"
 }
 elseif($findpass -like "*statsmessagepump*")
 {
-$app.set_item("sqldatabasePassword","$statsmessagepumppass")
+$app.set_item("sqldatabasePassword","$orleanspass")
 Write-Host "DBPassword has been added from TeamCity"
 }
 else
