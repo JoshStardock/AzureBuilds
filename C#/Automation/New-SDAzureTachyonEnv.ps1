@@ -46,7 +46,7 @@ Get-AzureWebsite | Out-Null
 
 Write-Host "The value of `$ApplicationName is $ApplicationName"
 
-Write-Verbose "[Start] creating Windows Azure website environment: $ApplicationName"
+
 # Get the directory of the current script
 
 
@@ -129,7 +129,7 @@ Write-Verbose "Values for `$ServiceBusNamespace and `$ServiceBusQueueName were n
 }
 #  Going to be produced by MSBuild $CSPkgName,
 #  Going to be produced by MSBuild $CSCnfgName
-
+Write-Verbose "[Start] creating Microsoft Azure website environment: $ApplicationName"
 switch ($ApplicationType)
 	{
 	Website {New-SDAzureWebsite -ApplicationName $ApplicationName -Location $Location -StorageAccountName $StorageAccountName `
