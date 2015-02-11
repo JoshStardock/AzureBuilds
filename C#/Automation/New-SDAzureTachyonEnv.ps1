@@ -1,7 +1,7 @@
 ﻿    #The number of parameters is getting bloated#
     param(
     [String]$ApplicationName,           
-    [String]$Location = "East US"
+    [String]$Location = "East US",
 	[String]$StorageAccountName,
 	[String]$ApplicationType
 	[String]$SubscriptionName,
