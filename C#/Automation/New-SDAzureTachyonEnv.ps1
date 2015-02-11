@@ -21,7 +21,10 @@
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
 try{
+if(!(get-module -name Azure))
+{
 Import-Module "C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Azure.psd1"
+}
 # Set the output level to verbose and make the script stop on error
 $VerbosePreference = "Continue"
 $ErrorActionPreference = "Stop"
@@ -54,6 +57,11 @@ $storage = New-SDAzureStorage -Name $StorageAccountName -Location $Location
 if (!$storage) {throw "Error: Storage account was not created. Terminating the script unsuccessfully. Fix the errors that New-SDAzureStorage function returned and try again."}
 
 #Ensuring the subscription uses the newly created storage account
+#If the subscription name was not passed in, use the current subscription that was set in TeamCity
+if (!($SubscriptionName))
+{
+$SubscriptionName = (Get-AzureSubscription | Where-Object{$_.IsCurrent -eq "True"}).SubscriptionName
+}
 Set-AzureSubscription -SubscriptionName $subscriptionName -CurrentStorageAccountName $storageAccountName
 
 Write-Verbose "Creating a Windows Azure database server and databases if a database name variable is passed in"
