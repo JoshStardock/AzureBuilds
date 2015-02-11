@@ -50,6 +50,7 @@ $CurrentAppBuild = $app.GetEnumerator()|Where-Object{$_.key -eq "ApplicationName
 $CurrentAppBuild = $CurrentAppBuild.value
 Write-Host "The current app being built is:  $CurrentAppBuild"
 . .\New-SDAzureTachyonEnv.ps1 @app
+Write-Host "$CurrentAppBuild is done being built`r`n`r`n"
 }
 }
 
