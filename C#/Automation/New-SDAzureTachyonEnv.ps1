@@ -21,9 +21,15 @@
 
 # Begin - Actual script -----------------------------------------------------------------------------------------------------------------------------
 try{
+$scriptPath = Split-Path -parent $PSCommandPath
 if(!(get-module -name Azure))
 {
 Import-Module "C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Azure.psd1"
+}
+
+if (!(get-module -name "New-SDAzureTachyon" ))
+{
+Import-Module $scriptPath\New-SDAzureTachyon.psm1
 }
 # Set the output level to verbose and make the script stop on error
 $VerbosePreference = "Continue"
@@ -42,7 +48,7 @@ Write-Host "The value of `$ApplicationName is $ApplicationName"
 
 Write-Verbose "[Start] creating Windows Azure website environment: $ApplicationName"
 # Get the directory of the current script
-$scriptPath = Split-Path -parent $PSCommandPath
+
 
 
 $sqlDatabaseServerFirewallRuleName = $ApplicationName + "rule"
