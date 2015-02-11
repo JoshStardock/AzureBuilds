@@ -3,7 +3,7 @@
     [String]$ApplicationName,           
     [String]$Location = "East US",
 	[String]$StorageAccountName,
-	[String]$ApplicationType
+	[String]$ApplicationType,
 	[String]$SubscriptionName,
 	[String]$sqlAppDatabaseName, 
 	[String]$SqlDatabaseUserName,  
@@ -15,7 +15,7 @@
 	[String]$WebOutputDir,
 	[String]$ServiceBusNamespace,
 	[String]$ServiceBusQueueName,
-	[String]$CSProjName,
+	[String]$CSProjName
 
     )
 
