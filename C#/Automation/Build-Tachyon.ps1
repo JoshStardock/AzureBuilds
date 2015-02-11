@@ -47,7 +47,7 @@ foreach ($app in $applications)
 $CurrentAppBuild = $app.GetEnumerator()|Where-Object{$_.key -eq "ApplicationName"}
 $CurrentAppBuild = $CurrentAppBuild.value
 Write-Host "The current app being built is:  $CurrentAppBuild"
-. .\New-SDAzureTachyonEnv.ps1 @app
+. .\New-SDAzureTachyonEnv @app
 }
 }
 
