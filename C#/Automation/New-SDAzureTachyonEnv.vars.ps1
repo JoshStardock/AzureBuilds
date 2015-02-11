@@ -17,6 +17,7 @@ $TachyonApi = @{
 "CSProjName" = "$Null";
 "CSPkgName" = "$Null";
 "CSCnfgName" = "$Null";
+"WebOutputDir" = "C:\WebsitesPublish";
 }
 
 $TachyonOrleans = @{
@@ -36,6 +37,7 @@ $TachyonOrleans = @{
 "CSProjName" = "$Null";
 "CSPkgName" = "$Null";
 "CSCnfgName" = "$Null";
+"WebOutputDir" = "C:\WebsitesPublish";
 }
 
 $TachyonStatsMsgPump = @{
@@ -55,6 +57,7 @@ $TachyonStatsMsgPump = @{
 "CSProjName" = "$Null";
 "CSPkgName"  = "$Null";
 "CSCnfgName" = "$Null";
+"WebOutputDir" = "C:\WebsitesPublish";
 }
 
 $applications += $TachyonApi
