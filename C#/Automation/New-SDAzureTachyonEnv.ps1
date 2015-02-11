@@ -1,7 +1,4 @@
-﻿Function New-SDAzureTachyonEnv
-{
-
-Param(
+﻿Param(
     #The number of parameters is getting bloated#
     param(
     [String]$ApplicationName,           
@@ -147,6 +144,6 @@ catch {
   "any other undefined errors"
   $error[0]
 }
-}
+
 
 

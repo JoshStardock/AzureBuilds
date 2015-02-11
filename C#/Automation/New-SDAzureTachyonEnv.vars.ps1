@@ -60,11 +60,3 @@ $TachyonStatsMsgPump = @{
 $applications += $TachyonApi
 $applications += $TachyonOrleans
 $applications += $TachyonStatsMsgPump
-
-<#
-foreach ($app in $applications)
-{
-New-SDAzureTachyonEnv @app
-}
-#>
-
