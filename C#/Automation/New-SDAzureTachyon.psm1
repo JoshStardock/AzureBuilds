@@ -263,14 +263,14 @@ Function New-SDAzureTachyonEnv
 Param(
     #The number of parameters is getting bloated#
     [String]$ApplicationName,           
-    [String]$Location = "East US"
+    [String]$Location = "East US",
 	[String]$sqlAppDatabaseName, 
 	[String]$StorageAccountName, 	
     [String]$SqlDatabaseUserName,  
     [String]$SqlDatabasePassword,
 	[String]$SubscriptionName,
 	[String]$AppInsightsKey,
-	[String]$CSProjPath, #From Team City
+	[String]$CSProjPath, 
 	[String]$WebOutputDir,
 	[String]$DBEdition,
 	[String]$ServiceBusNamespace,
@@ -641,7 +641,7 @@ param
 [String]$ApplicationName,
 [String]$Location,
 [String]$StorageAccountName,
-[hashtable]$ConnectionStrings
+[hashtable]$ConnectionStrings,
 [String]$AppInsightsKey
 )
 
